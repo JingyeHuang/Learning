@@ -1,0 +1,10 @@
+F:\Python\Huang\Dialog.txt
+F:\Python\Huang\Hello.txt
+F:\Python\Huang\huang_write.txt
+F:\Python\Huang\jing_write.txt
+F:\Python\Huang\Poem.txt
+F:\Python\Huang\Poem2.txt
+F:\Python\Huang\script.txt
+F:\Python\Huang\test.txt
+F:\Python\Huang\Test13.txt
+F:\Python\Huang\videolist.txt

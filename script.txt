@@ -1,0 +1,29 @@
+Loreal Project
+Incontrol:
+cslroutermonitoring@gmail.com
+CSL123456
+
+AWS:
+307669280@qq.com
+hajy_930307
+
+Admin:admin
+Password:lorealPOC
+
+SSID:loreal
+Password:loreal88
+
+Table setting
+GDCN
+Ip: 10.41.50.24
+Mask: 255.255.255.0
+GW: 10.41.50.254
+DNS1: 10.2.202.1
+DNS2: 10.3.220.160
+
+
+website:
+http://join.micepad.co/admin/#/login
+
+Username: csladmin
+password: csladmin16
