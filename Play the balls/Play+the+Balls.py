@@ -19,6 +19,7 @@ class Ball(pygame.sprite.Sprite):
         self.rect.left, self.rect.top = position
         self.speed = speed
         self.width, self.height = bg_size[0], bg_size[1]
+        self.radius = self.rect.width / 2
         
     def move(self):
         self.rect = self.rect.move(self.speed)
@@ -50,12 +51,16 @@ def main():
     background = pygame.image.load(bg_image).convert_alpha()
     
     balls = []
+    group = pygame.sprite.Group()
     
     for i in range(5):
         position = randint(0, width-100), randint(0, height-100)   #the width of the ball is 100
         speed = [randint(-10,10), randint(-10,10)]
         ball = Ball(ball_image, position, speed, bg_size)
+        while pygame.sprite.spritecollide(ball,group,False,pygame.sprite.collide_circle):
+            ball.rect.left, ball.rect.top = randint(0, width-100), randint(0, height-100)
         balls.append(ball)
+        group.add(ball)
     
     clock = pygame.time.Clock()
     
@@ -69,6 +74,13 @@ def main():
         for each in balls:
             each.move()
             screen.blit(each.image, each.rect)
+            
+        for each in group:
+            group.remove(each)
+            if pygame.sprite.spritecollide(each,group,False,pygame.sprite.collide_circle):
+                each.speed[0] = -each.speed[0]
+                each.speed[1] = -each.speed[1]
+            group.add(each)
             
         pygame.display.flip()
         clock.tick(30)
