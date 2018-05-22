@@ -9,7 +9,7 @@ import sys
 from pygame.locals import *
 from random import *
 
-class Ball(pygame.sprite.Sprite):
+class Ball(pygame.sprite.Sprite):  #pygame.sprite是pygame提供的动画精灵
     def __init__(self, image, position, speed, bg_size):
         pygame.sprite.Sprite.__init__(self)
         
@@ -39,6 +39,22 @@ class Ball(pygame.sprite.Sprite):
 def main():
     pygame.init()
     
+    #Background music
+    pygame.mixer.init()
+    
+    pygame.mixer.music.load('bg_music.ogg')
+    pygame.mixer.music.set_volume(0.2)
+    pygame.mixer.music.play()
+    
+    loser_sound = pygame.mixer.Sound('loser.wav')
+    laugh_sound = pygame.mixer.Sound('laugh.wav')
+    winner_sound = pygame.mixer.Sound('winner.wav')
+    hole_sound = pygame.mixer.Sound('hole.wav')
+    
+    #音乐结束，游戏结束
+    GAMEOVER = USEREVENT
+    pygame.mixer.music.set_endevent(GAMEOVER)
+    
     ball_image = 'gray_ball.png'
     bg_image = 'background.png'
     
@@ -57,7 +73,7 @@ def main():
         position = randint(0, width-100), randint(0, height-100)   #the width of the ball is 100
         speed = [randint(-10,10), randint(-10,10)]
         ball = Ball(ball_image, position, speed, bg_size)
-        while pygame.sprite.spritecollide(ball,group,False,pygame.sprite.collide_circle):
+        while pygame.sprite.spritecollide(ball,group,False,pygame.sprite.collide_circle):  # When the new born ball collide with others
             ball.rect.left, ball.rect.top = randint(0, width-100), randint(0, height-100)
         balls.append(ball)
         group.add(ball)
@@ -68,6 +84,12 @@ def main():
         for event in pygame.event.get():
             if event.type == QUIT:
                 sys.exit()
+            elif event.type == GAMEOVER:
+                loser_sound.play()
+                pygame.time.delay(2000)
+                laugh_sound.play()
+                pygame.time.delay(2000)
+                running = False
                 
         screen.blit(background,(0,0))
         
@@ -75,7 +97,7 @@ def main():
             each.move()
             screen.blit(each.image, each.rect)
             
-        for each in group:
+        for each in group:   #其中一个球与其他碰撞时
             group.remove(each)
             if pygame.sprite.spritecollide(each,group,False,pygame.sprite.collide_circle):
                 each.speed[0] = -each.speed[0]
