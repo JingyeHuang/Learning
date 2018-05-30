@@ -1,11 +1,12 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[2]:
 
 
 import pygame
 import sys
+import traceback
 from pygame.locals import *
 from random import *
 
@@ -18,7 +19,9 @@ class Ball(pygame.sprite.Sprite):  #pygame.sprite是pygame提供的动画精灵
         self.greenball_image = pygame.image.load(greenball_image).convert_alpha()
         self.rect = self.grayball_image.get_rect()
         self.rect.left, self.rect.top = position
+        self.side = [choice([-1,1]),choice([-1,1])]
         self.speed = speed
+        self.collide = False
         self.width, self.height = bg_size[0], bg_size[1]
         self.radius = self.rect.width / 2
         
@@ -26,18 +29,21 @@ class Ball(pygame.sprite.Sprite):  #pygame.sprite是pygame提供的动画精灵
         self.control = False   #Ture: Auto , False:player control the ball
         
     def move(self):
-        self.rect = self.rect.move(self.speed)
+        if self.control:
+            self.rect = self.rect.move(self.speed)
+        else:
+            self.rect = self.rect.move((self.side[0]*self.speed[0], self.side[1]*self.speed[1]))
         
-        if self.rect.right < 0:
+        if self.rect.right <= 0:
             self.rect.left = self.width
             
-        elif self.rect.left > self.width:
+        elif self.rect.left >= self.width:
             self.rect.right = 0
         
-        elif self.rect.top > self.height:
+        elif self.rect.top >= self.height:
             self.rect.bottom = 0
         
-        elif self.rect.bottom < 0:
+        elif self.rect.bottom <= 0:
             self.rect.top = self.height
             
     def check(self, motion):
@@ -93,6 +99,8 @@ def main():
     
     background = pygame.image.load(bg_image).convert_alpha()
     
+    hole = [(117,119,199,201),(225,227,390,392),(503,505,320,322),(698,700,192,194),(906,908,419,421)]
+    
     balls = []
     group = pygame.sprite.Group()
     
@@ -100,7 +108,7 @@ def main():
     
     for i in range(5):
         position = randint(0, width-100), randint(0, height-100)   #the width of the ball is 100
-        speed = [randint(-10,10), randint(-10,10)]
+        speed = [randint(1,10), randint(1,10)]
         ball = Ball(grayball_image,greenball_image, position, speed, bg_size, 5*(i+1))
         while pygame.sprite.spritecollide(ball,group,False,pygame.sprite.collide_circle):  # When the new born ball collide with others
             ball.rect.left, ball.rect.top = randint(0, width-100), randint(0, height-100)
@@ -112,11 +120,14 @@ def main():
     MYTIMER = USEREVENT + 1
     pygame.time.set_timer(MYTIMER, 1000) #1000毫秒触发一次check事件
     
+    pygame.key.set_repeat(100,100)   #每过100毫秒，重新发送一次key
+    
     clock = pygame.time.Clock()
     
     while running:
         for event in pygame.event.get():
             if event.type == QUIT:
+                pygame.quit()
                 sys.exit()
             elif event.type == GAMEOVER:
                 loser_sound.play()
@@ -136,6 +147,49 @@ def main():
             elif event.type == MOUSEMOTION:
                 motion += 1
                 
+            elif event.type == KEYDOWN:
+                if event.key == K_w:
+                    for each in group:
+                        if each.control:
+                            each.speed[1] -= 1
+
+                if event.key == K_s:
+                    for each in group:
+                        if each.control:
+                            each.speed[1] += 1
+
+                if event.key == K_a:
+                    for each in group:
+                        if each.control:
+                            each.speed[0] -= 1
+                            
+                if event.key == K_d:
+                    for each in group:
+                        if each.control:
+                            each.speed[0] += 1
+                
+                if event.key == K_SPACE:
+                    for each in group:
+                        if each.control:
+                            for i in hole:
+                                if i[0] <= each.rect.left <= i[1] and i[2] <= each.rect.top <= i[3] :
+                                    hole_sound.play()
+                                    each.speed = [0,0]
+                                    group.remove(each)
+                                    temp = balls.pop(balls.index(each))
+                                    balls.insert(0,temp)
+                                    hole.remove(i)
+                                    
+                            if not hole:
+                                pygame.mixer.music.stop()
+                                winner_sound.play()
+                                pygame.time.delay(3000)
+                                laugh_sound.play()
+                                pygame.time.delay(3000)
+                                pygame.quit()
+                                sys.exit()
+                        
+                
         screen.blit(background,(0,0))
         screen.blit(glass.glass_image, glass.glass_rect)
         
@@ -153,6 +207,9 @@ def main():
         
         for each in balls:
             each.move()
+            if each.collide:
+                each.speed = [randint(1,10),randint(1,10)]
+                each.collide = False
             if each.control:
                 screen.blit(each.greenball_image, each.rect)
             else:
@@ -161,8 +218,14 @@ def main():
         for each in group:   #其中一个球与其他碰撞时
             group.remove(each)
             if pygame.sprite.spritecollide(each,group,False,pygame.sprite.collide_circle):
-                each.speed[0] = -each.speed[0]
-                each.speed[1] = -each.speed[1]
+                each.side[0] = -each.side[0]
+                each.side[1] = -each.side[1]
+                each.collide = True
+                if each.control:
+                    each.side[0] = -1   #控制的小球碰撞后向反方向移动
+                    each.side[1] = -1
+                    each.control = False
+            
             group.add(each)
             
         pygame.display.flip()
@@ -170,5 +233,12 @@ def main():
                 
     
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except SystemExit:
+        pass
+    except:
+        traceback.print_exc()
+        pygame.quit()
+        input()
 
